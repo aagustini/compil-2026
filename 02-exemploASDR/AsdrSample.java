@@ -41,8 +41,8 @@ public class AsdrSample {
   Cmd --> Bloco
       | while ( E ) Cmd
       | ident = E ;
-      | if ( E ) Cmd fi
-      | if ( E ) Cmd else Cmd fi
+      | if ( E ) Cmd 
+      | if ( E ) Cmd else Cmd 
 
   E --> IDENT
    | NUM
@@ -59,8 +59,8 @@ public class AsdrSample {
       | ident = E ;
       | if ( E ) Cmd RestoIf   // 'fatorada à esquerda'
       
-   RestoIf --> fi
-            | else Cmd fi
+   RestoIf --> else Cmd 
+               |     //vazio
 
   E --> IDENT
    | NUM
@@ -69,21 +69,21 @@ public class AsdrSample {
 
   private void Prog() {
    
-      if (laToken == '{') {
+    //  if (laToken == '{') {
          if (debug) System.out.println("Prog --> Bloco");
          Bloco();
-      }
-      else 
-        yyerror("esperado '{'");
+    //  }
+//else 
+       // yyerror("esperado '{'");
    }
 
   private void Bloco() {
       if (debug) System.out.println("Bloco --> { Cmd }");
-      //if (laToken == '{') {
+     // if (laToken == '{') {
          verifica('{');
          Cmd();
          verifica('}');
-      //}
+     // }
   }
 
   private void Cmd() {
@@ -101,7 +101,8 @@ public class AsdrSample {
 	   }
       else if (laToken == IDENT ) {
          if (debug) System.out.println("Cmd --> IDENT = E ;");
-            verifica(IDENT);  
+            laToken = yylex();
+            //verifica(IDENT);  
             verifica('='); 
             E();
 		      verifica(';');
@@ -121,16 +122,17 @@ public class AsdrSample {
 
    private void RestoIF() {
        if (laToken == ELSE) {
-         if (debug) System.out.println("RestoIF --> else Cmd FI ");
+         if (debug) System.out.println("RestoIF --> else Cmd ");
          verifica(ELSE);
          Cmd();
          verifica(FI);
     
-	   } else if (laToken == FI){
-         if (debug) System.out.println("RestoIF -->  FI  ");
-         verifica(FI); 
-         }
-      else yyerror("Esperado else ou fi");
+	   } else {
+         if (debug) System.out.println("RestoIF -->  vazio  ");
+         //aceita a produção vazia como default
+      }
+         
+      //else yyerror("Esperado else ou fi");
      }     
 
 
@@ -223,10 +225,15 @@ public class AsdrSample {
             parser = new  AsdrSample( new java.io.FileReader(args[0]));
 
           parser.setDebug(false);
+
+
+          // inicializa o lookahead
           laToken = parser.yylex();          
 
+          // ativa o método S do conjunto NT
           parser.Prog();
      
+          // verifica se processou toda entrada
           if (laToken== Yylex.YYEOF)
              System.out.println("\n\nSucesso!");
           else     
